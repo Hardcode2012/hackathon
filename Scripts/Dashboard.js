@@ -54,7 +54,6 @@ function drawChart() {
 }
 
 function drawGauge1() {
-    debugger;
     var data = google.visualization.arrayToDataTable([
           ['Label', 'Value'],
           ['Dry Cereal', 80],
