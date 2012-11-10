@@ -1,0 +1,105 @@
+
+<%@ page import="com.att.api.util.DateUtil"%>
+<%@ page import="com.att.api.speech.model.SpeechResponse"%>
+<%@ page import="com.att.api.speech.handler.Config"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Inventory by Voice</title>
+    <link rel="stylesheet" type="text/css" href="css/theme.css" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <script src="Scripts/jquery-1.5.1.min.js" type="text/javascript"></script>
+    <script src="Scripts/jquery-ui-1.8.11.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" />
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type='text/javascript'>
+
+        function GetData() {
+            var data = new Array();
+            data[0] = ['Canned Vegetables', { v: 100}];
+            data[1] = ['Dry Cereal', { v: 150}];
+            data[2] = ['Powdered Milk', { v: 80}];
+            data[3] = ['Tuna', { v: 200}];
+
+            return data;
+        }
+
+        function GetChartData() {
+            var data = google.visualization.arrayToDataTable([
+          ['Product', 'Forecast', 'Quantity'],
+          ['Canned Vegetables', 100, 100],
+          ['Dry Cereal', 120, 150],
+          ['Powdered Milk', 100, 80],
+          ['Tuna', 300, 200]
+        ]);
+            return data;
+        }
+
+        google.load('visualization', '1', { packages: ['table', 'corechart'] });
+        google.setOnLoadCallback(drawCharts);
+        function drawCharts() {
+            drawTable();
+            drawChart();
+        }
+        function drawTable() {
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Product');
+            data.addColumn('number', 'Weight (lb)');
+            data.addRows(GetData());
+
+            var table = new google.visualization.Table(document.getElementById('table'));
+            table.draw(data, { showRowNumber: true });
+        }
+
+        function drawChart() {
+            var chartOptions = {
+                height: 266,
+                hAxis: { title: 'Product', titleTextStyle: { color: 'red'} }
+            };
+            var chart = new google.visualization.ColumnChart(document.getElementById('chart'));
+            chart.draw(GetChartData(), chartOptions);
+        }
+
+    </script>
+</head>
+<body>
+    <div id="container">
+        <div id="header">
+            <h2>
+                North Texas Food Bank - Admin</h2>
+            <div id="topmenu">
+                <ul>
+                    <li class="current">Dashboard</li>
+                </ul>
+            </div>
+        </div>
+        <div id="wrapper">
+         <div id="content">
+        <div id="speech-text">
+        	<jsp:include page="TalkTo1.jsp"></jsp:include>
+        </div>
+           
+                <div id="infowrap">
+                    <div id="infobox">
+                        <h3>
+                            Inventory</h3>
+                        <p id="table">
+                        </p>
+                    </div>
+                    <div id="infobox" class="margin-left">
+                        <h3>
+                            Chart</h3>
+                        <p id="chart">
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div id="footer">
+                <div id="credits">
+                    Ericsson Hackathon 2012
+                </div>
+                <br />
+            </div>
+        </div>
+</body>
+</html>

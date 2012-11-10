@@ -1,0 +1,358 @@
+
+<!--
+ * WCG Competition Demo
+ * With WebRTC support for Google Chrome using JSEP (ROAP is supported but deprecated)
+ *
+ * @author Maxime-Alexandre Marchand
+ * @version Competition
+ * Copyright: 2012 Ericsson
+ * -->
+
+<!-- WEBRTC FOR GOOGLE CHROME BETA -->
+
+<!doctype html>
+<html>
+	<head>
+	
+		<script type="text/javascript" src="WCGapi.js"></script>
+		<script type="text/javascript">
+			window.onload = function() {
+				var url = document.getElementById("url");
+				var turn = document.getElementById("turn");
+				var login = document.getElementById("login");
+				var password = document.getElementById("password");
+				var register = document.getElementById("register");
+				var login2 = document.getElementById("login2");
+				var password2 = document.getElementById("password2");
+				var register2 = document.getElementById("register2");
+				var login2 = document.getElementById("login2");
+				var password3 = document.getElementById("password3");
+				var register3 = document.getElementById("register3");
+				var unregister = document.getElementById("unregister");
+				
+				var recipient = document.getElementById("recipient");
+				var createCall = document.getElementById("createCall");
+				var ring = document.getElementById("ring");
+				var endCall = document.getElementById("endCall");
+				var acceptCall = document.getElementById("acceptCall");
+		
+				var localvideo = document.getElementById("selfView");
+				var remotevideo = document.getElementById("remoteView");
+				var localvideo2 = document.getElementById("selfView2");
+				var remotevideo2 = document.getElementById("remoteView2");
+				var videoBox = document.getElementById("videoBox");
+				var localStream = null;
+				var remoteStream = null;
+	
+				<!-- Events Confirmation Box -->
+				var boxRegister = document.getElementById("boxRegister");
+				var boxRegister2 = document.getElementById("boxRegister2");
+				var boxCallSent = document.getElementById("boxCallSent");
+				var boxCallReceived = document.getElementById("boxCallReceived");
+				var boxUnregister = document.getElementById("boxUnregister");
+				
+				
+				var service = null;
+				var call = null;
+				var usernamechat;
+				var usernamechat2;
+				
+				
+				// User login
+				register.onclick = function() {
+					// Media service
+					service = new MediaServices(url.value, login.value, password.value, "audio,video");
+					service.turnConfig = turn.value;
+					service.onclose = serviceOnClose;
+					service.onerror = serviceOnError;
+					service.oninvite = serviceOnInvite;
+					service.onready = serviceOnReady;
+					service.onstatechange = serviceOnStateChange;
+					usernamechat = login.value;
+					usernamechat2 = login.value;
+					boxRegister2.style.visibility = "hidden";
+					
+
+					
+				};
+				
+				register2.onclick = function() {
+					// Media service
+					service = new MediaServices(url.value, login2.value, password2.value, "audio,video");
+					service.turnConfig = turn.value;
+					service.onclose = serviceOnClose2;
+					service.onerror = serviceOnError;
+					service.oninvite = serviceOnInvite;
+					service.onready = serviceOnReady2;
+					service.onstatechange = serviceOnStateChange;
+					usernamechat2 = login2.value;
+					usernamechat = login2.value;
+					boxRegister.style.visibility = "hidden";
+					
+					
+				};
+				
+				unregister.onclick = function() {
+					service.unregister();
+					boxRegister.style.visibility = "hidden";
+					boxRegister2.style.visibility = "hidden";
+				};
+				
+				/************************************************************************
+				 * Call																	*
+				 ***********************************************************************/
+				
+				// Create a call and ring the other person
+				ring.onclick = function() {
+
+				};
+				
+				// End call
+				endCall.onclick = function() {
+					localStream.stop();
+					remoteStream.stop();
+					call.end();					
+					boxCallSent.style.visibility = 'hidden';
+				
+				};
+
+				
+				/************************************************************************
+				 * Service handlers below												*
+				 ***********************************************************************/
+				
+				function serviceOnClose(event) {
+					console.log("[MediaServices] Closed");
+					boxCallReceived.style.visibility = 'hidden';
+					boxCallSent.style.visibility = 'hidden';
+					videoBox.style.display = "none";
+					boxUnregister.style.visibility = 'visible';
+					boxUnregister.style.backgroundColor = '#99FF33';
+					boxRegister.style.visibility = 'hidden';
+					boxRegister.style.backgroundColor = '#E9FA7A';
+					boxCallReceived.style.visibility = 'hidden';
+					boxCallReceived.style.backgroundColor = '#FC8E7F';
+					boxCallSent.style.visibility = 'hidden';
+					boxCallSent.style.backgroundColor = '#FC8E7F';
+				};
+				
+				function serviceOnClose2(event) {
+					console.log("[MediaServices] Closed");
+					boxCallReceived.style.visibility = 'hidden';
+					boxCallSent.style.visibility = 'hidden';
+					videoBox.style.display = "none";
+					boxUnregister.style.visibility = 'visible';
+					boxUnregister.style.backgroundColor = '#99FF33';
+					boxRegister2.style.visibility = 'hidden';
+					boxRegister2.style.backgroundColor = '#E9FA7A';
+					boxCallReceived.style.visibility = 'hidden';
+					boxCallReceived.style.backgroundColor = '#FC8E7F';
+					boxCallSent.style.visibility = 'hidden';
+					boxCallSent.style.backgroundColor = '#FC8E7F';
+				};
+				
+				
+				function serviceOnError(event) {
+					console.log("[MediaServices] Error: " + event.type + " " + event.reason + " " + event.target);
+				};
+				
+				function serviceOnInvite(event) {
+					if (event.call) {
+						console.log("[MediaServices] Received call invite");
+						boxCallReceived.style.visibility = 'visible';
+						boxCallReceived.style.backgroundColor = '#99FF33';
+						
+						acceptCall.onclick = function() {
+							videoBox.style.display = "block";
+							call = event.call;
+							call.answer();
+							call.onaddstream = callOnAddStream;
+							call.onbegin = callOnBegin;
+							call.onend = callOnEnd;
+							call.onerror = callOnError;
+							call.onremovestream = callOnRemoveStream;
+							call.onstatechange = callOnStateChange;
+						};
+						
+						endCall.onclick = function() {
+							event.call.end();
+							boxCallReceived.style.visibility = 'hidden';
+							videoBox.style.display = "none";
+						};
+					}
+			
+				};
+				
+				function serviceOnReady(event) {
+					console.log("[MediaServices] Ready");
+					boxRegister.style.visibility = 'visible';
+					boxRegister.style.backgroundColor = '#99FF33';
+					boxUnregister.style.visibility = 'hidden';
+
+                    call = service.createCall(recipient.value, {video:true,audio:true});
+					call.onaddstream = callOnAddStream;
+					call.onbegin = callOnBegin;
+					call.onend = callOnEnd;
+					call.onerror = callOnError;
+					call.onremovestream = callOnRemoveStream;
+					call.onstatechange = callOnStateChange;
+					call.ring();
+					videoBox.style.display = "block";
+					videoBox.style.visibility = "visible";
+					boxCallSent.style.visibility = 'visible';
+					boxCallSent.style.backgroundColor = '#99FF33';
+				};
+				
+				function serviceOnReady2(event) {
+					console.log("[MediaServices] Ready");
+					boxRegister2.style.visibility = 'visible';
+					boxRegister2.style.backgroundColor = '#99FF33';
+					boxUnregister.style.visibility = 'hidden';
+				};
+				
+				
+				function serviceOnStateChange(event) {
+					console.log("[MediaServices] State changed: " + event.type + " " + event.state);
+				};
+				
+				/************************************************************************
+				 * Call handlers below													*
+				 ***********************************************************************/
+				
+				function callOnAddStream(event) {
+					if (event.call.localStreams) {
+						console.log("[Call] Local stream added");
+						var url = webkitURL.createObjectURL(event.call.localStreams[0]);
+						localvideo.style.opacity = 1;
+						localvideo.src = url;
+						localStream = event.call.localStreams[0];
+					}
+					if (event.call.remoteStreams) {
+						console.log("[Call] Remote stream added");
+						var url = webkitURL.createObjectURL(event.call.remoteStreams[0]);
+						remotevideo.style.opacity = 1;
+						remotevideo.src = url;
+						remoteStream = event.call.remoteStreams[0];
+					}
+				};
+				
+				function callOnBegin(event) {
+					console.log("[Call] Call has started");
+					videoBox.style.display = "block";
+					videoBox.style.visibility = "visible";
+				};
+				
+				function callOnEnd(event) {
+					console.log("[Call] Call has ended");
+					boxCallReceived.style.visibility = 'hidden';
+					boxCallSent.style.visibility = 'hidden';
+					videoBox.style.display = "none";
+				};
+				
+				function callOnError(event) {
+					console.log("[Call] Error: " + event.type + " " + event.reason + " " + event.target);
+				};
+				
+				function callOnRemoveStream(event) {
+					console.log("[Call] Stream removed");
+					localStream.stop();
+					remoteStream.stop(); 
+					// Do stuff with event.call.remoteStreams
+				};
+				
+				function callOnStateChange(event) {
+					console.log("[Call] State changed: " + call.state);
+				};
+		
+			};
+		</script>
+	</head>
+	
+	<body style="background-color:WHITE">
+		<p align="center">
+		<H1>Welcom to NTFB customer support.</H1>
+		<H2>We are here to help you help us</H2>
+		</p>
+		
+		
+		<div id="MainContainer">
+			<!-- Media services -->
+			<div id="registering" style="background-color:WHITE">
+				<div>
+					<H1>Donator's Contact information</H1>
+				</div>
+				<div style="display :none;">
+				WCG server: <input id="url" type="text" value="http://10.97.33.50:38080/HaikuServlet/rest/v2/" size="40" />
+				STUN server: <input id="turn" type="text" value="STUN 10.97.33.50:4242" /><br /><br />
+				</div>
+				
+				<div style="display :none;">
+				SIP login: <input id="login" type="text" value="sip:16509992354@vims1.com" />
+				SIP password: <input id="password" type="text" value="EECpa$$w0rd" />
+				</div>
+				
+				<button id="register">Live Chat</button>
+				<div id="donator_form">
+				<H3>ENTER YOUR DETAILS</H3><br>
+				<table border="0">
+				<tr>
+				<td>
+				<table border="0">
+				<tr><td>Name:</td><td><input type="text"></td></tr>
+				<tr><td>Phone Number:</td><td><input type="text"></td></tr>
+				<tr><td>Type of Donation:</td><td><input type="text"></td></tr>
+				<tr><td>Email ID:</td><td><input type="text"></td></tr>
+				</table>
+				</td>
+				<td align="center">
+				<div id="videoBox" style="background-color:none; display:none;">
+				<H3>Video is Below</H3>
+				<video id="selfView"
+					width="320" height="240" style="opacity: 0;
+					-webkit-transition-property: opacity;
+					-webkit-transition-duration: 2s;" muted autoplay controls></video>
+				<video id="remoteView"
+					width="320" height="240" style="opacity: 0;
+					-webkit-transition-property: opacity;
+					-webkit-transition-duration: 2s;" muted autoplay controls></video>
+				</div>
+				</td>
+				</tr>
+				</table>
+				</div>
+				<div style="display :none"><label id="boxRegister" style="visibility: hidden; background-color:WHITE">Registered Success!</label>
+				</div>
+                <button id="acceptCall ">Accept call</button>
+				<button id="endCall">End/Reject call</button>
+				
+				<div style="display :none;">
+				SIP login: <input id="login2" type="text" value="sip:165099923xx@vims1.com" />
+				SIP password: <input id="password2" type="text" value=""/>
+				<button id="register2">Login</button>
+				<label id="boxRegister2" style="visibility: hidden; background-color:WHITE">Registered Success!</label>
+				</div>
+				<br />
+				<div style="display :none;">
+				<button id="unregister">Logout</button><br /><br />
+				<div id="boxUnregister" style="visibility: hidden; background-color:WHITE">Unregistration Successful! All fields refreshed...</div>
+				</div>
+			</div> 
+			
+			
+			
+			<!-- Call -->
+			<div id="call" style="background-color:WHITE">
+				<div style="display:none;">
+				Recipient: <input id="recipient" type="text" value="sip:16509992353@vims1.com" />
+                <button id="ring">Create call & Ring</button><br /><br />
+				</div>
+				<div id="boxCallReceived" style="visibility: hidden; background-color:#FC8E7F">Call Received!</div>
+				<div id="boxCallSent" style="visibility: hidden; background-color:#FC8E7F">Calling! (Waiting for answer...)</div>
+				
+				
+				
+			</div>	
+
+		</div>	
+	</body>
+</html>
